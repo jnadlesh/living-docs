@@ -184,3 +184,17 @@ export function checkDrift({ file, paths, lastChecked, countCommits }) {
   const times = commits === 1 ? "1 commit has" : `${commits} commits have`;
   return [warning(file, `${times} changed its files since it was last checked on ${lastChecked}. Read it against the code, fix it, and set Last checked to today.`)];
 }
+
+/** Two pages with one title would be one glossary term with two meanings. */
+export function checkUniqueTitles(pages) {
+  const seen = new Map();
+  return pages.flatMap((page) => {
+    const key = page.title.trim().toLowerCase();
+    const first = seen.get(key);
+    if (first === undefined) {
+      seen.set(key, page.file);
+      return [];
+    }
+    return [error(page.file, `its title "${page.title}" is already used by ${first}. One word per thing: rename one of them.`)];
+  });
+}

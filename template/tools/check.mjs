@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { staleIndexes } from "./build-indexes.mjs";
-import { checkDecision, checkDrift, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
+import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
 import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
 import { readAllPages, specificPaths } from "./lib/pages.mjs";
 import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listPages } from "./lib/layout.mjs";
@@ -15,7 +15,7 @@ import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, li
 const NOW_FILE = "NOW.md";
 const RETIRED_WORDS_FILE = `${RULES_DIR}/retired-words.md`;
 const TOP_FILES = Object.freeze(["README.md", NOW_FILE]);
-const TASK_EXEMPT = new Set(["README.md"]);
+const TASK_EXEMPT = new Set(["README.md", "not-built-yet.md"]);
 
 const read = (root, file) => readFileSync(join(root, file), "utf8").replace(/\r\n/g, "\n");
 
@@ -88,6 +88,7 @@ export function runChecks({ root, today, useCode }) {
   const tracked = useCode ? trackedPaths(config.codeRepo, config.codeRef) : null;
   return [
     ...checkPages(root, tracked, today),
+    ...checkUniqueTitles(readAllPages(root)),
     ...(tracked ? checkAllDrift(root, config, tracked) : []),
     ...checkRules(root),
     ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today, owner: config.owner }),

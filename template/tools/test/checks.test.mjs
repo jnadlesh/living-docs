@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { checkDecision, checkNow, checkPage, checkRetiredWords, checkTask, parseDate, parseRetiredWords } from "../lib/checks.mjs";
+import { checkDecision, checkUniqueTitles, checkNow, checkPage, checkRetiredWords, checkTask, parseDate, parseRetiredWords } from "../lib/checks.mjs";
 import { isPlainRepoPath } from "../lib/code-repo.mjs";
 
 const TODAY = new Date("2026-09-17T00:00:00Z");
@@ -164,4 +164,10 @@ test("the second heading of NOW.md names the owner from the settings", () => {
   const text = now("- 2026-09-16 Usage page.").replace("Waiting on Jonathan", "Waiting on Priya");
   assert.deepEqual(checkNow({ file: "NOW.md", text, today: TODAY, owner: "Priya" }), []);
   assert.match(messages(checkNow({ file: "NOW.md", text, today: TODAY, owner: "Jonathan" }))[0], /Waiting on Jonathan/);
+});
+
+test("two pages cannot share a title", () => {
+  const pages = [{ file: "docs/07-a/trust.md", title: "Project trust" }, { file: "docs/10-b/trust.md", title: "project trust" }];
+  assert.match(messages(checkUniqueTitles(pages))[0], /already used by docs\/07-a\/trust\.md/);
+  assert.deepEqual(checkUniqueTitles([pages[0], { file: "x.md", title: "Something else" }]), []);
 });
