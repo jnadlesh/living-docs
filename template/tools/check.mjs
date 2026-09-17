@@ -9,7 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { staleIndexes } from "./build-indexes.mjs";
 import { checkDecision, checkDrift, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
 import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
-import { readAllPages } from "./lib/pages.mjs";
+import { readAllPages, specificPaths } from "./lib/pages.mjs";
 import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listPages } from "./lib/layout.mjs";
 
 const NOW_FILE = "NOW.md";
@@ -36,7 +36,7 @@ function checkAllDrift(root, config, tracked) {
   const countCommits = (paths, day) =>
     commitsSince(config.codeRepo, config.codeRef, paths.filter((path) => tracked.has(path)), day);
   return readAllPages(root).flatMap((page) =>
-    checkDrift({ file: page.file, paths: page.paths, lastChecked: page.lastChecked, countCommits }),
+    checkDrift({ file: page.file, paths: specificPaths(page), lastChecked: page.lastChecked, countCommits }),
   );
 }
 

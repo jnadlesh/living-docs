@@ -12,7 +12,9 @@ import { pagesForFiles, readAllPages } from "./lib/pages.mjs";
 const FILES_SHOWN = 6;
 
 export function report(root, files) {
-  const hits = pagesForFiles(readAllPages(root), files);
+  const all = pagesForFiles(readAllPages(root), files);
+  const hits = all.filter((hit) => !hit.overview);
+  const overview = all.filter((hit) => hit.overview);
   const covered = new Set(hits.flatMap((hit) => hit.matched));
   const uncovered = files.filter((file) => !covered.has(file));
   const lines = [`${files.length} changed files. ${hits.length} pages name them.`, ""];
@@ -20,6 +22,9 @@ export function report(root, files) {
     const shown = matched.slice(0, FILES_SHOWN).join(", ");
     const more = matched.length > FILES_SHOWN ? ` and ${matched.length - FILES_SHOWN} more` : "";
     lines.push(`${page.file}  (${page.title})`, `    because of: ${shown}${more}`);
+  }
+  if (overview.length > 0) {
+    lines.push("", `Overview pages that cover these folders as a whole. Read them only if the big picture changed: ${overview.map((hit) => hit.page.title).join(", ")}.`);
   }
   if (uncovered.length > 0) {
     lines.push("", `${uncovered.length} changed files are on no page. If they hold something new, it needs a page:`);

@@ -31,14 +31,25 @@ export function readAllPages(root) {
 /** True when a changed file is the listed path, or sits inside a listed folder. */
 export const pathCovers = (listed, changed) => changed === listed || changed.startsWith(`${listed}/`);
 
-/** The pages that name any of the changed files, each with the files that matched. */
+/** A whole top-level folder such as `apps` or `packages/ui`. It covers so much that almost any change matches it. */
+export const isBroadPath = (path) => path.split("/").length <= 2 && !/\.[a-z0-9]+$/i.test(path);
+
+/** The paths of a page that point at something specific enough to notice a change in. */
+export const specificPaths = (page) => page.paths.filter((path) => !isBroadPath(path));
+
+/**
+ * The pages that name any of the changed files. `matched` holds files matched through a
+ * specific path. A page reached only through a whole top-level folder has `overview: true`.
+ */
 export function pagesForFiles(pages, changedFiles) {
+  const covering = (paths, changed) => paths.some((listed) => pathCovers(listed, changed));
   return pages
-    .map((page) => ({
-      page,
-      matched: changedFiles.filter((changed) => page.paths.some((listed) => pathCovers(listed, changed))),
-    }))
-    .filter((hit) => hit.matched.length > 0)
+    .map((page) => {
+      const matched = changedFiles.filter((changed) => covering(specificPaths(page), changed));
+      const any = matched.length > 0 || changedFiles.some((changed) => covering(page.paths, changed));
+      return { page, matched, overview: matched.length === 0, any };
+    })
+    .filter((hit) => hit.any)
     .sort((a, b) => b.matched.length - a.matched.length);
 }
 

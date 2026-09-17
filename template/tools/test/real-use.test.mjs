@@ -131,3 +131,22 @@ test("pages-for lists the pages a change touches, find looks a thing up, and dri
   assert.match(drift[0].message, /2 commits have changed its files since it was last checked on 2020-01-01/);
   assert.throws(() => changedFiles(code, "--upload-pack=x"), /not a commit range/);
 });
+
+test("a page that only names a whole top-level folder is an overview page, not a match and not drift", async () => {
+  const { report: pagesFor } = await import("../pages-for.mjs");
+  const { changedFiles } = await import("../lib/code-repo.mjs");
+  const base = mkdtempSync(join(tmpdir(), "docs-real-"));
+  const code = makeCodeRepo(base);
+  const root = makeDocsRepo(base);
+  write(root, "docs/02-the-chat/island.md", ISLAND.replace("2026-09-17", "2020-01-01"));
+  write(root, "docs/02-the-chat/whole-app.md", ISLAND.replace("# The island", "# Whole app").replace("`packages/ui/src/island.tsx` the pill", "`packages/ui` everything").replace("2026-09-17", "2020-01-01"));
+  applyIndexes(root);
+  write(code, "packages/ui/src/island.tsx", "export const island = 3;\n");
+  git(code, "add", "-A");
+  git(code, "commit", "-q", "-m", "change");
+  const listed = pagesFor(root, changedFiles(code, "main~1..main"));
+  assert.match(listed, /1 changed files\. 1 pages name them\./);
+  assert.match(listed, /Overview pages that cover these folders as a whole[^\n]*Whole app/);
+  const drift = runChecks({ root, today: new Date(), useCode: true }).filter((p) => /changed its files/.test(p.message));
+  assert.deepEqual(drift.map((p) => p.file), ["docs/02-the-chat/island.md"]);
+});
