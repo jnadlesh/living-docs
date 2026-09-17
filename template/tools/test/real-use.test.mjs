@@ -103,3 +103,31 @@ test("a chapter that lost its markers is reported by name, and the other checks 
   assert.ok(problems.some((p) => p.file === "indexes" && /docs\/02-the-chat\/README\.md: missing generated block "pages"/.test(p.message)));
   assert.ok(problems.some((p) => p.file === "NOW.md"));
 });
+
+test("pages-for lists the pages a change touches, find looks a thing up, and drift is warned about", async () => {
+  const { report: pagesFor } = await import("../pages-for.mjs");
+  const { report: find } = await import("../find.mjs");
+  const { changedFiles } = await import("../lib/code-repo.mjs");
+  const base = mkdtempSync(join(tmpdir(), "docs-real-"));
+  const code = makeCodeRepo(base);
+  const root = makeDocsRepo(base);
+  write(root, "docs/02-the-chat/island.md", ISLAND.replace("2026-09-17", "2020-01-01"));
+  applyIndexes(root);
+
+  assert.match(find(root, "island"), /The island  \(docs\/02-the-chat\/island\.md\)\n    The island shows progress\.\n    lives in: packages\/ui\/src\/island\.tsx/);
+  assert.match(find(root, "spaceship"), /No page matches/);
+
+  write(code, "packages/ui/src/island.tsx", "export const island = 2;\n");
+  write(code, "packages/ui/src/brand-new.tsx", "export const fresh = 1;\n");
+  git(code, "add", "-A");
+  git(code, "commit", "-q", "-m", "change the island");
+  const listed = pagesFor(root, changedFiles(code, "main~1..main"));
+  assert.match(listed, /docs\/02-the-chat\/island\.md  \(The island\)\n    because of: packages\/ui\/src\/island\.tsx/);
+  assert.match(listed, /1 changed files are on no page[\s\S]*packages\/ui\/src\/brand-new\.tsx/);
+
+  const drift = runChecks({ root, today: new Date(), useCode: true }).filter((p) => /changed its files/.test(p.message));
+  assert.equal(drift.length, 1);
+  assert.equal(drift[0].level, "warning");
+  assert.match(drift[0].message, /2 commits have changed its files since it was last checked on 2020-01-01/);
+  assert.throws(() => changedFiles(code, "--upload-pack=x"), /not a commit range/);
+});

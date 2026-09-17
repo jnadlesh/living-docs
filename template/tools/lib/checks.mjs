@@ -175,3 +175,12 @@ export function checkDecision({ file, name, text, known }) {
       .map((ref) => error(file, `the status links ${ref.number} as ${ref.file}, which is not a decision here`)),
   ];
 }
+
+/** A page whose files changed after it was last checked may no longer be true. */
+export function checkDrift({ file, paths, lastChecked, countCommits }) {
+  if (!parseDate(lastChecked) || paths.length === 0) return [];
+  const commits = countCommits(paths.filter(isPlainRepoPath), lastChecked);
+  if (commits === 0) return [];
+  const times = commits === 1 ? "1 commit has" : `${commits} commits have`;
+  return [warning(file, `${times} changed its files since it was last checked on ${lastChecked}. Read it against the code, fix it, and set Last checked to today.`)];
+}

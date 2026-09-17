@@ -6,7 +6,7 @@ The rules every agent follows, in any harness. They exist so that no agent works
 
 1. Read [NOW.md](../NOW.md). It says what is in flight, what is waiting on {{OWNER}}, and what to watch out for.
 2. Know [how {{OWNER}} wants to be worked with](working-with-the-owner.md).
-3. Look up what you are about to touch. Open the [table of contents](../TABLE-OF-CONTENTS.md) and pick the section. The section lists every page, what the thing is, and where it lives in the code.
+3. Look up what you are about to touch. Open the [table of contents](../TABLE-OF-CONTENTS.md) and pick the section. The section lists every page, what the thing is, and where it lives in the code. Or ask in one step: `npm run find -- island` prints the matching pages, what each thing is, and its files.
 4. If a page exists, the thing exists. Use it. Do not build a second one.
 5. If no page exists, the thing is new. Building it includes writing its page.
 
@@ -23,12 +23,13 @@ Bigger work gets a task file in `work/`. Bigger means it spans more than one ses
 
 The work is not done until all of this is done.
 
-1. Update every page in `docs/` that your work changed. Write what is true now.
-2. Write a new page for anything new. See [writing documentation](writing-documentation.md).
-3. Remove your line from NOW.md. Update Next up or Waiting on {{OWNER}} if your work changed them.
-4. Set the task file's status to done and move the file to `archive/`.
-5. Run `npm run build`, then `npm run check`. Fix every error. Read every warning.
-6. Commit and push. See Commits below.
+1. Find the pages your work touched. Run `npm run pages-for -- main..your-branch`, or `npm run pages-for -- --files` followed by the files you changed. It lists every page that names those files, and any changed file that no page covers.
+2. Update each of those pages. Write what is true now, and set Last checked to today.
+3. Write a new page for anything new. See [writing documentation](writing-documentation.md).
+4. Remove your line from NOW.md. Update Next up or Waiting on {{OWNER}} if your work changed them.
+5. Set the task file's status to done and move the file to `archive/`.
+6. Run `npm run build`, then `npm run check`. Fix every error. Read every warning. A warning that a page's files changed since it was last checked means nobody has confirmed that page against the new code. If it is yours to fix, fix it. If not, leave it, so the next person sees it.
+7. Commit and push. See Commits below.
 
 With parallel agents, the orchestrator does these steps on their behalf. The agents keep notes. One session writes the documentation.
 

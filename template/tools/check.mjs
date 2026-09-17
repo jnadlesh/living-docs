@@ -7,8 +7,9 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { staleIndexes } from "./build-indexes.mjs";
-import { checkDecision, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
-import { loadConfig, trackedPaths } from "./lib/code-repo.mjs";
+import { checkDecision, checkDrift, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
+import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
+import { readAllPages } from "./lib/pages.mjs";
 import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listPages } from "./lib/layout.mjs";
 
 const NOW_FILE = "NOW.md";
@@ -27,6 +28,15 @@ function pageFiles(root) {
 function checkPages(root, tracked, today) {
   return pageFiles(root).flatMap((file) =>
     checkPage({ root, file, text: read(root, file), tracked, today }),
+  );
+}
+
+/** Pages whose code changed after they were last checked. Warnings, never errors. */
+function checkAllDrift(root, config, tracked) {
+  const countCommits = (paths, day) =>
+    commitsSince(config.codeRepo, config.codeRef, paths.filter((path) => tracked.has(path)), day);
+  return readAllPages(root).flatMap((page) =>
+    checkDrift({ file: page.file, paths: page.paths, lastChecked: page.lastChecked, countCommits }),
   );
 }
 
@@ -78,6 +88,7 @@ export function runChecks({ root, today, useCode }) {
   const tracked = useCode ? trackedPaths(config.codeRepo, config.codeRef) : null;
   return [
     ...checkPages(root, tracked, today),
+    ...(tracked ? checkAllDrift(root, config, tracked) : []),
     ...checkRules(root),
     ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today, owner: config.owner }),
     ...checkTasks(root),

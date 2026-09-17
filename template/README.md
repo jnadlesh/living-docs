@@ -38,7 +38,10 @@ If you do not know a word, open [GLOSSARY.md](GLOSSARY.md).
 
 ```
 npm run build    rebuild the table of contents, the glossary, the section tables and the decisions list
-npm run check    check every rule, and that every listed code path still exists
+npm run check    check every rule, that every listed code path still exists,
+                 and warn about pages whose code changed since they were last checked
+npm run find -- island              look something up in one step
+npm run pages-for -- main..branch   which pages a change to the code touches
 npm test         test the tools themselves
 ```
 

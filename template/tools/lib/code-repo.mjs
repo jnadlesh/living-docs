@@ -52,3 +52,26 @@ export function isPlainRepoPath(path) {
   if (path.includes("\\") || path.includes("*")) return false;
   return !path.split("/").some((part) => part === ".." || part === "." || part === "");
 }
+
+const RANGE = /^[\w./~^@{}-]+(\.{2,3}[\w./~^@{}-]+)?$/;
+
+/** The files a range of commits changed, such as "main~3..main" or "main...my-branch". */
+export function changedFiles(repo, range) {
+  if (!RANGE.test(range) || range.startsWith("-")) throw new Error(`not a commit range: ${range}`);
+  const output = execFileSync("git", ["-C", repo, "diff", "--name-only", "-z", range], {
+    encoding: "utf8",
+    maxBuffer: GIT_LIST_LIMIT_BYTES,
+  });
+  return output.split("\0").filter((path) => path.length > 0);
+}
+
+/** How many commits on `ref` touched any of these paths after the end of the given day. */
+export function commitsSince(repo, ref, paths, day) {
+  if (paths.length === 0) return 0;
+  const output = execFileSync(
+    "git",
+    ["-C", repo, "log", "--oneline", `--since=${day} 23:59:59`, ref, "--", ...paths],
+    { encoding: "utf8", maxBuffer: GIT_LIST_LIMIT_BYTES },
+  );
+  return output.split("\n").filter((line) => line.length > 0).length;
+}
