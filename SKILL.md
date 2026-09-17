@@ -27,6 +27,7 @@ What it does:
 - Creates the documentation repository from the template: README, NOW.md, the table of contents, the glossary, `docs/`, `decisions/`, `work/`, `rules/`, `reference/`, `archive/` and `tools/`.
 - Points its check at the code repository and branch.
 - Adds a short marked block to the top of `AGENTS.md` in the code repository, saying where the documentation is and the two promises. It leaves the rest of that file alone. If there is no `CLAUDE.md`, it creates one holding the single line `@AGENTS.md`, so Claude Code reads the same rules file as every other harness.
+- With `--root`, also adds a Claude Code hook in that folder so every session starts with NOW.md already loaded. It never overwrites an existing settings file.
 - Refuses to write into a folder that already has files.
 
 Then do the two things its NOW.md lists: fill in `rules/working-with-the-owner.md` with the user, and name the sections of the project under `docs/`.
@@ -35,9 +36,9 @@ Then do the two things its NOW.md lists: fill in `rules/working-with-the-owner.m
 
 Read `rules/using-the-documentation.md` in the documentation repository. In short:
 
-- Start: read `NOW.md`, then look up what you are about to touch in `TABLE-OF-CONTENTS.md`.
+- Start: read `NOW.md`, then look up what you are about to touch. `npm run find -- <words>` prints the matching pages, what each thing is, and its files. Or open `TABLE-OF-CONTENTS.md` and pick the section.
 - Bigger work gets a task file in `work/`, with the user's request in their exact words.
-- Finish: rewrite the pages your work changed, write a page for anything new, take your line out of `NOW.md`, run `npm run build` then `npm run check`, commit only your own files.
+- Finish: run `npm run pages-for -- <commit range>` to list the pages your change touches and any changed file no page covers. Rewrite those pages, write a page for anything new, take your line out of `NOW.md`, run `npm run build` then `npm run check`, commit only your own files.
 - When the user corrects you or states a lasting preference, add it to `rules/working-with-the-owner.md` in the same sitting. Do not keep it in private memory.
 
 ## Writing the first pages
@@ -46,4 +47,4 @@ Name sections as numbered folders under `docs/`, such as `02-the-editor`, each w
 
 ## What the check enforces
 
-The page shape and a 150-line cap, real code paths on the chosen branch, working links, dated lines and a 60-line cap in NOW.md, task files with dates and a known status, decisions with a status line that links a real decision, retired words, and indexes that match the pages.
+The page shape and a 150-line cap, real code paths on the chosen branch, working links, dated lines and a 60-line cap in NOW.md, task files with dates and a known status, decisions with a status line that links a real decision, retired words, and indexes that match the pages. It also warns, without failing, when the code behind a page changed after the page was last checked. That warning is how drift gets noticed without anyone having to remember.

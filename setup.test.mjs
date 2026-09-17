@@ -36,6 +36,10 @@ test("setup makes a documentation repository whose own check passes, and leaves 
   assert.match(agents, /# Existing rules\n\nKeep these\./);
   assert.equal(readFileSync(join(code, "CLAUDE.md"), "utf8"), "@AGENTS.md\n");
   assert.match(readFileSync(join(base, "AGENTS.md"), "utf8"), /`my-app-docs\/` is all the documentation/);
+  const hook = JSON.parse(readFileSync(join(base, ".claude/settings.json"), "utf8")).hooks.SessionStart[0].hooks[0];
+  assert.match(hook.command, /my-app-docs\/tools\/session-start\.mjs/);
+  const loaded = execFileSync(process.execPath, [join(docs, "tools/session-start.mjs")], { encoding: "utf8" });
+  assert.match(loaded, /## Waiting on Priya/);
 });
 
 test("a page written in the new repository is checked against the real code", () => {

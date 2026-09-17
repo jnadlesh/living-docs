@@ -90,6 +90,18 @@ function writePointer(folder, templateName, values) {
   return null;
 }
 
+/** A Claude Code hook that loads NOW.md when a session starts in the root folder. Never overwrites settings. */
+function writeSessionHook(rootFolder, docsName) {
+  const file = join(rootFolder, ".claude", "settings.json");
+  if (existsSync(file)) return `${file} already exists. To load NOW.md at the start of every Claude Code session, add a SessionStart hook that runs: node "$CLAUDE_PROJECT_DIR/${docsName}/tools/session-start.mjs"`;
+  const command = `node "$CLAUDE_PROJECT_DIR/${docsName}/tools/session-start.mjs" 2>/dev/null || true`;
+  const hook = { type: "command", command, timeout: 15, statusMessage: "Loading where the work is today" };
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, `${JSON.stringify({ hooks: { SessionStart: [{ hooks: [hook] }] } }, null, 2)}
+`);
+  return null;
+}
+
 function run(cwd, command, args) {
   return execFileSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 }
@@ -113,7 +125,10 @@ export function setup(argv) {
   run(docs, process.execPath, ["tools/build-indexes.mjs"]);
   const notes = [];
   if (options.pointer) notes.push(writePointer(code, "code-AGENTS.md", values));
-  if (options.root) notes.push(writePointer(resolve(options.root), "root-AGENTS.md", values));
+  if (options.root) {
+    notes.push(writePointer(resolve(options.root), "root-AGENTS.md", values));
+    notes.push(writeSessionHook(resolve(options.root), values["{{DOCS_NAME}}"]));
+  }
   if (options.git) startGit(docs);
   const checked = run(docs, process.execPath, ["tools/check.mjs"]).trim().split("\n").at(-1);
   return { docs, code, checked, notes: notes.filter(Boolean) };
