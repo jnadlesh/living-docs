@@ -1,0 +1,9 @@
+{
+  "name": "living-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test setup.test.mjs \"template/tools/test/*.test.mjs\""
+  },
+  "engines": { "node": ">=22" }
+}
