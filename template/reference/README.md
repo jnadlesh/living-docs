@@ -11,4 +11,4 @@ Pictures are the only thing that makes this repository heavy. Compress them befo
 
 ## What is here
 
-- [references.md](references.md): the pinned source, commit and date for every idea borrowed from another project. Copied from the code repository on 2026-09-17. Not checked since.
+Nothing yet. When an idea is borrowed from another project, add a `references.md` here with the source, the commit and the date, and list it in this file.
