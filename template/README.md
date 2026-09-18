@@ -14,7 +14,7 @@ Start with [NOW.md](NOW.md) to see what is happening today.
 | `docs/` | How {{PROJECT}} works today, in numbered sections. One page per thing. |
 | [decisions/](decisions/README.md) | Why things are the way they are. Numbered, never edited, only superseded. |
 | [work/](work/README.md) | What is being built right now. One file per task. |
-| [rules/](rules/using-the-documentation.md) | How to use this documentation, how to write it, and how we build. |
+| [rules/](rules/README.md) | [Working with the owner](rules/working-with-the-owner.md), then one folder per subject, starting with `docs/` for this documentation. The owner of {{PROJECT}} is {{OWNER}}. |
 | [reference/](reference/README.md) | Pictures and research. Background, not truth. |
 | [archive/](archive/README.md) | No longer true. Never read it to learn how {{PROJECT}} works. |
 | `tools/` | The scripts that build the indexes and check the rules. |
@@ -24,7 +24,7 @@ Start with [NOW.md](NOW.md) to see what is happening today.
 1. Read first. Before you build anything, look it up. If a page exists, the thing exists: use it, do not build it again. If no page exists, it is new, and building it includes writing its page.
 2. Write back. No work is done until the documentation is updated. Whoever lands the work updates the pages it changed and [NOW.md](NOW.md).
 
-How to do both is in [using the documentation](rules/using-the-documentation.md). How to write a page is in [writing documentation](rules/writing-documentation.md).
+How to do both is in [using the documentation](rules/docs/using-the-documentation.md). How to write a page is in [writing documentation](rules/docs/writing-documentation.md).
 
 ## Looking something up
 

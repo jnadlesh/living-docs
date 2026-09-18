@@ -13,9 +13,8 @@ export const PAGE_HEADINGS = Object.freeze([
   "Last checked",
 ]);
 
-/** The five headings of NOW.md. The second one names the person who owns the project. */
-export const nowHeadings = (owner) =>
-  Object.freeze(["In flight", `Waiting on ${owner}`, "Next up", "Parked", "Watch out"]);
+/** The five headings of NOW.md. "The owner" is a role, so the file reads the same whoever holds it. */
+export const NOW_HEADINGS = Object.freeze(["In flight", "Waiting on the owner", "Next up", "Parked", "Watch out"]);
 
 export const TASK_HEADINGS = Object.freeze([
   "What you asked for",
@@ -68,4 +67,27 @@ export function listMarkdown(root, folder) {
     if (error.code === "ENOENT") return [];
     throw error;
   }
+}
+
+/**
+ * Markdown files inside one folder and its subfolders, as paths relative to that folder
+ * with forward slashes ("ui/tokens.md"). The rules live in folders, one per subject.
+ */
+export function listMarkdownDeep(root, folder) {
+  const dir = join(root, folder);
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+  return entries
+    .flatMap((entry) => {
+      if (entry.isDirectory()) {
+        return listMarkdownDeep(root, `${folder}/${entry.name}`).map((name) => `${entry.name}/${name}`);
+      }
+      return entry.name.endsWith(".md") ? [entry.name] : [];
+    })
+    .sort();
 }

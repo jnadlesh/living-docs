@@ -10,10 +10,10 @@ import { staleIndexes } from "./build-indexes.mjs";
 import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
 import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
 import { readAllPages, specificPaths } from "./lib/pages.mjs";
-import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listPages } from "./lib/layout.mjs";
+import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listMarkdownDeep, listPages } from "./lib/layout.mjs";
 
 const NOW_FILE = "NOW.md";
-const RETIRED_WORDS_FILE = `${RULES_DIR}/retired-words.md`;
+const RETIRED_WORDS_FILE = `${RULES_DIR}/docs/retired-words.md`;
 const TOP_FILES = Object.freeze(["README.md", NOW_FILE]);
 const TASK_EXEMPT = new Set(["README.md", "not-built-yet.md"]);
 
@@ -40,9 +40,11 @@ function checkAllDrift(root, config, tracked) {
   );
 }
 
+/** Every rules page, in every subject folder under rules/. */
+const ruleFiles = (root) => listMarkdownDeep(root, RULES_DIR).map((name) => `${RULES_DIR}/${name}`);
+
 function checkRules(root) {
-  return listMarkdown(root, RULES_DIR).flatMap((name) => {
-    const file = `${RULES_DIR}/${name}`;
+  return ruleFiles(root).flatMap((file) => {
     const text = read(root, file);
     return [...checkLength(file, text, LIMITS.pageLines), ...checkLinks(root, file, text)];
   });
@@ -68,7 +70,7 @@ function checkWords(root) {
   const live = [
     ...TOP_FILES,
     ...pageFiles(root),
-    ...listMarkdown(root, RULES_DIR).map((name) => `${RULES_DIR}/${name}`),
+    ...ruleFiles(root),
   ].filter((file) => file !== RETIRED_WORDS_FILE);
   return live.flatMap((file) => checkRetiredWords(file, read(root, file), words));
 }
@@ -91,7 +93,7 @@ export function runChecks({ root, today, useCode }) {
     ...checkUniqueTitles(readAllPages(root)),
     ...(tracked ? checkAllDrift(root, config, tracked) : []),
     ...checkRules(root),
-    ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today, owner: config.owner }),
+    ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today }),
     ...checkTasks(root),
     ...checkDecisions(root),
     ...checkWords(root),

@@ -9,7 +9,7 @@ This folder holds two repositories.
 
 1. Read `{{DOCS_NAME}}/README.md`. It says what every folder is.
 2. Read `{{DOCS_NAME}}/NOW.md`. It says what is happening today and what to watch out for.
-3. Read `{{DOCS_NAME}}/rules/using-the-documentation.md` and `{{DOCS_NAME}}/rules/working-with-the-owner.md`.
+3. Read `{{DOCS_NAME}}/rules/docs/using-the-documentation.md` and `{{DOCS_NAME}}/rules/working-with-the-owner.md`.
 
 ## The rules that never change
 

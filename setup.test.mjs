@@ -27,7 +27,7 @@ test("setup makes a documentation repository whose own check passes, and leaves 
   const docs = join(base, "my-app-docs");
   const result = setup(["--project", "My App", "--owner", "Priya", "--code", code, "--docs", docs, "--root", base, "--no-git"]);
   assert.equal(result.checked, "0 errors, 0 warnings.");
-  assert.match(readFileSync(join(docs, "NOW.md"), "utf8"), /## Waiting on Priya/);
+  assert.match(readFileSync(join(docs, "NOW.md"), "utf8"), /## Waiting on the owner/);
   assert.deepEqual(JSON.parse(readFileSync(join(docs, "docs.config.json"), "utf8")), { codeRepo: "../my-app", codeRef: "main", owner: "Priya" });
   assert.doesNotMatch(readFileSync(join(docs, "README.md"), "utf8"), /\{\{|Aurelia|Jonathan/);
 
@@ -39,7 +39,7 @@ test("setup makes a documentation repository whose own check passes, and leaves 
   const hook = JSON.parse(readFileSync(join(base, ".claude/settings.json"), "utf8")).hooks.SessionStart[0].hooks[0];
   assert.match(hook.command, /my-app-docs\/tools\/session-start\.mjs/);
   const loaded = execFileSync(process.execPath, [join(docs, "tools/session-start.mjs")], { encoding: "utf8" });
-  assert.match(loaded, /## Waiting on Priya/);
+  assert.match(loaded, /## Waiting on the owner/);
 });
 
 test("a page written in the new repository is checked against the real code", () => {

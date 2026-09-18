@@ -4,7 +4,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { isPlainRepoPath } from "./code-repo.mjs";
-import { DECISION_FILE, LIMITS, PAGE_HEADINGS, TASK_HEADINGS, TASK_STATUSES, nowHeadings } from "./layout.mjs";
+import { DECISION_FILE, LIMITS, PAGE_HEADINGS, TASK_HEADINGS, TASK_STATUSES, NOW_HEADINGS } from "./layout.mjs";
 import { listedPaths, parsePage, proseOnly, relativeLinks, sectionBody, withoutFences } from "./markdown.mjs";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -101,12 +101,12 @@ function nowItemProblems(file, section, today) {
 }
 
 /** NOW.md: one screen, five headings, every line dated. */
-export function checkNow({ file, text, today, owner }) {
+export function checkNow({ file, text, today }) {
   const page = parsePage(text);
   const updated = /^Updated: (\S+?),? by .+$/m.exec(withoutFences(text));
   return [
     ...(updated && parseDate(updated[1]) ? [] : [error(file, 'needs a line like "Updated: 2026-09-17, by Claude"')]),
-    ...headingProblems(file, page, nowHeadings(owner)),
+    ...headingProblems(file, page, NOW_HEADINGS),
     ...checkLength(file, text, LIMITS.nowLines),
     ...page.sections.flatMap((section) => nowItemProblems(file, section, today)),
   ];

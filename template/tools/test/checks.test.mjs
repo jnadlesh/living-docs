@@ -7,7 +7,6 @@ import { checkDecision, checkUniqueTitles, checkNow, checkPage, checkRetiredWord
 import { isPlainRepoPath } from "../lib/code-repo.mjs";
 
 const TODAY = new Date("2026-09-17T00:00:00Z");
-const OWNER = "Jonathan";
 const TRACKED = new Set(["packages", "packages/ui", "packages/ui/src", "packages/ui/src/island.tsx"]);
 
 const page = (overrides = {}) => {
@@ -78,25 +77,25 @@ test("a broken link is an error and a working one is not", () => {
 });
 
 const now = (inFlight) =>
-  ["# Now", "", "Updated: 2026-09-17, by Claude", "", "## In flight", "", inFlight, "", "## Waiting on Jonathan", "",
+  ["# Now", "", "Updated: 2026-09-17, by Claude", "", "## In flight", "", inFlight, "", "## Waiting on the owner", "",
     "## Next up", "", "1. 2026-09-17 A thing.", "", "## Parked", "", "## Watch out", ""].join("\n");
 
 test("NOW.md accepts dated lines and warns on old in-flight work", () => {
-  assert.deepEqual(checkNow({ file: "NOW.md", text: now("- 2026-09-16 Usage page."), today: TODAY, owner: OWNER }), []);
-  const old = checkNow({ file: "NOW.md", text: now("- 2026-09-01 Usage page."), today: TODAY, owner: OWNER });
+  assert.deepEqual(checkNow({ file: "NOW.md", text: now("- 2026-09-16 Usage page."), today: TODAY }), []);
+  const old = checkNow({ file: "NOW.md", text: now("- 2026-09-01 Usage page."), today: TODAY });
   assert.match(messages(old, "warning")[0], /is it still true/);
 });
 
 test("NOW.md rejects undated lines, relative dates and a missing Updated line", () => {
-  const undated = checkNow({ file: "NOW.md", text: now("- yesterday Usage page."), today: TODAY, owner: OWNER });
+  const undated = checkNow({ file: "NOW.md", text: now("- yesterday Usage page."), today: TODAY });
   assert.match(messages(undated)[0], /real date/);
   const noUpdated = now("- 2026-09-16 X.").replace("Updated: 2026-09-17, by Claude", "");
-  assert.match(messages(checkNow({ file: "NOW.md", text: noUpdated, today: TODAY, owner: OWNER }))[0], /Updated:/);
+  assert.match(messages(checkNow({ file: "NOW.md", text: noUpdated, today: TODAY }))[0], /Updated:/);
 });
 
 test("NOW.md over sixty lines is an error", () => {
   const many = Array.from({ length: 70 }, (_, i) => `- 2026-09-17 Thing ${i}.`).join("\n");
-  assert.ok(messages(checkNow({ file: "NOW.md", text: now(many), today: TODAY, owner: OWNER })).some((m) => /the cap is 60/.test(m)));
+  assert.ok(messages(checkNow({ file: "NOW.md", text: now(many), today: TODAY })).some((m) => /the cap is 60/.test(m)));
 });
 
 const task = (status) =>
@@ -131,8 +130,8 @@ test("a malformed percent in a link is a broken link, not a crash", () => {
 });
 
 test("NOW.md checks star bullets too, and allows a colon after the date", () => {
-  assert.match(messages(checkNow({ file: "NOW.md", text: now("* undated line"), today: TODAY, owner: OWNER }))[0], /real date/);
-  assert.deepEqual(checkNow({ file: "NOW.md", text: now("- 2026-09-17: fixed the thing."), today: TODAY, owner: OWNER }), []);
+  assert.match(messages(checkNow({ file: "NOW.md", text: now("* undated line"), today: TODAY }))[0], /real date/);
+  assert.deepEqual(checkNow({ file: "NOW.md", text: now("- 2026-09-17: fixed the thing."), today: TODAY }), []);
 });
 
 test("a retired word inside backticks or a link address is left alone", () => {
@@ -160,10 +159,9 @@ test("a status that names another decision must link one that exists", () => {
   assert.match(messages(runDecision(decision("superseded by [0099](0099-missing.md)")))[0], /not a decision here/);
 });
 
-test("the second heading of NOW.md names the owner from the settings", () => {
-  const text = now("- 2026-09-16 Usage page.").replace("Waiting on Jonathan", "Waiting on Priya");
-  assert.deepEqual(checkNow({ file: "NOW.md", text, today: TODAY, owner: "Priya" }), []);
-  assert.match(messages(checkNow({ file: "NOW.md", text, today: TODAY, owner: "Jonathan" }))[0], /Waiting on Jonathan/);
+test("the second heading of NOW.md is a role, never a person's name", () => {
+  const text = now("- 2026-09-16 Usage page.").replace("Waiting on the owner", "Waiting on Priya");
+  assert.match(messages(checkNow({ file: "NOW.md", text, today: TODAY }))[0], /Waiting on the owner/);
 });
 
 test("two pages cannot share a title", () => {

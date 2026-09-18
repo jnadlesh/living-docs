@@ -32,7 +32,7 @@ The title is the term. Whatever you put in the title is the word everyone uses f
 
 ## Adding a page
 
-1. Find the chapter it belongs to in the [table of contents](../TABLE-OF-CONTENTS.md).
+1. Find the chapter it belongs to in the [table of contents](../../TABLE-OF-CONTENTS.md).
 2. Copy the [page template](page-template.md) into that chapter. Name the file after the thing, in lowercase with hyphens, such as `sign-in.md`.
 3. Fill in all six headings. Check every path against the code.
 4. Run `npm run build`. The chapter's page list, the table of contents and the glossary update themselves.
@@ -54,6 +54,6 @@ Do not add a note saying what changed. The commit message says that.
 
 The table of contents, the glossary, and the page list between the `generated` markers inside each chapter's README. They are built from the pages. You may edit the title and the opening sentence of a chapter README, above the markers.
 
-## Writing for {{OWNER}} too
+## Writing for the owner too
 
-{{OWNER}} reads these pages. Write so that someone who does not program can follow What it is and the first lines of How it works. Expand an acronym the first time it appears. Keep file names and code words out of What it is where you can.
+the owner reads these pages. Write so that someone who does not program can follow What it is and the first lines of How it works. Expand an acronym the first time it appears. Keep file names and code words out of What it is where you can.

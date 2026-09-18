@@ -21,11 +21,11 @@ export function loadConfig(root) {
   if (typeof codeRef !== "string" || !/^[\w./-]+$/.test(codeRef) || codeRef.startsWith("-")) {
     throw new Error(`${CONFIG_FILE}: "codeRef" must be a plain branch or tag name`);
   }
-  if (typeof owner !== "string" || owner.trim().length === 0) {
-    throw new Error(`${CONFIG_FILE}: "owner" must be the name of the person who owns the project`);
+  if (owner !== undefined && (typeof owner !== "string" || owner.trim().length === 0)) {
+    throw new Error(`${CONFIG_FILE}: "owner", when given, is the name of the person who owns the project`);
   }
   const location = isAbsolute(codeRepo) ? codeRepo : resolve(root, codeRepo);
-  return { codeRepo: location, codeRef, owner: owner.trim() };
+  return { codeRepo: location, codeRef, owner: owner === undefined ? null : owner.trim() };
 }
 
 /** Every file and folder tracked at `ref`, as forward-slash paths from the repository root. */

@@ -34,7 +34,7 @@ Then do the two things its NOW.md lists: fill in `rules/working-with-the-owner.m
 
 ## Working in a project that has it
 
-Read `rules/using-the-documentation.md` in the documentation repository. In short:
+Read `rules/docs/using-the-documentation.md` in the documentation repository. In short:
 
 - Start: read `NOW.md`, then look up what you are about to touch. `npm run find -- <words>` prints the matching pages, what each thing is, and its files. Or open `TABLE-OF-CONTENTS.md` and pick the section.
 - Bigger work gets a task file in `work/`, with the user's request in their exact words.
@@ -43,7 +43,7 @@ Read `rules/using-the-documentation.md` in the documentation repository. In shor
 
 ## Writing the first pages
 
-Name sections as numbered folders under `docs/`, such as `02-the-editor`, each with a `README.md` that holds a title, one sentence, and the two `generated:pages` markers, copied from `docs/01-what-it-is/README.md`. Write pages from the code, not from old documents. Each page follows `rules/page-template.md` exactly: what it is, how it works, where it lives, related, decisions, last checked. Parallel agents can each take one section, since they never touch the same files. Only one session runs `npm run build`.
+Name sections as numbered folders under `docs/`, such as `02-the-editor`, each with a `README.md` that holds a title, one sentence, and the two `generated:pages` markers, copied from `docs/01-what-it-is/README.md`. Write pages from the code, not from old documents. Each page follows `rules/docs/page-template.md` exactly: what it is, how it works, where it lives, related, decisions, last checked. Parallel agents can each take one section, since they never touch the same files. Only one session runs `npm run build`.
 
 ## What the check enforces
 

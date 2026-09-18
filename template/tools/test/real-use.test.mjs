@@ -9,6 +9,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { buildIndexes, staleIndexes } from "../build-indexes.mjs";
 import { runChecks } from "../check.mjs";
+import { checkLinks } from "../lib/checks.mjs";
+import { listMarkdownDeep } from "../lib/layout.mjs";
 
 const TODAY = new Date("2026-09-17T00:00:00Z");
 const git = (cwd, ...args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8" });
@@ -38,9 +40,9 @@ function makeDocsRepo(base) {
   write(root, "README.md", "# Docs\n\n[Now](NOW.md)\n");
   write(root, "TABLE-OF-CONTENTS.md", `# Table of contents\n\n${block("chapters")}`);
   write(root, "GLOSSARY.md", `# Glossary\n\n${block("glossary")}`);
-  write(root, "NOW.md", ["# Now", "", "Updated: 2026-09-17, by Test", "", "## In flight", "", "## Waiting on Jonathan", "",
+  write(root, "NOW.md", ["# Now", "", "Updated: 2026-09-17, by Test", "", "## In flight", "", "## Waiting on the owner", "",
     "## Next up", "", "## Parked", "", "## Watch out", ""].join("\n"));
-  write(root, "rules/retired-words.md", "| Do not write | Write instead | Why |\n|---|---|---|\n| Playbook | Skill | Renamed. |\n");
+  write(root, "rules/docs/retired-words.md", "| Do not write | Write instead | Why |\n|---|---|---|\n| Playbook | Skill | Renamed. |\n");
   write(root, "decisions/README.md", `# Decisions\n\n${block("decisions")}`);
   write(root, "docs/02-the-chat/README.md", `# The chat\n\nThe conversation. More words.\n\n${block("pages")}`);
   return root;
@@ -149,4 +151,14 @@ test("a page that only names a whole top-level folder is an overview page, not a
   assert.match(listed, /Overview pages that cover these folders as a whole[^\n]*Whole app/);
   const drift = runChecks({ root, today: new Date(), useCode: true }).filter((p) => /changed its files/.test(p.message));
   assert.deepEqual(drift.map((p) => p.file), ["docs/02-the-chat/island.md"]);
+});
+
+test("rules pages in subject folders are checked, with their links and their length", () => {
+  const root = mkdtempSync(join(tmpdir(), "docs-rules-"));
+  write(root, "rules/ui/tokens.md", "# Tokens\n\nSee [parts](parts.md) and [the law](../how-we-build.md).\n");
+  write(root, "rules/how-we-build.md", "# How we build\n");
+  const files = listMarkdownDeep(root, "rules");
+  assert.deepEqual(files, ["how-we-build.md", "ui/tokens.md"]);
+  const problems = checkLinks(root, "rules/ui/tokens.md", readFileSync(join(root, "rules/ui/tokens.md"), "utf8"));
+  assert.deepEqual(problems.map((p) => p.message), ["broken link: parts.md"]);
 });

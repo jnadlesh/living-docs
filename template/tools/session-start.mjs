@@ -18,7 +18,7 @@ function main() {
     "",
     "Before you build anything, look it up: node tools/find.mjs <words>, run from that repository, or open TABLE-OF-CONTENTS.md.",
     "No work is done until the documentation is updated: node tools/pages-for.mjs <commit range> lists the pages your change touches.",
-    "The rules are in rules/using-the-documentation.md and rules/working-with-the-owner.md or its project-specific equivalent.",
+    "The rules are in rules/: start with rules/README.md, rules/how-we-build.md and rules/working-with-the-owner.md.",
   ];
   process.stdout.write(`${lines.join("\n")}\n`);
 }

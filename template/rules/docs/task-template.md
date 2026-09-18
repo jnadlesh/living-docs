@@ -7,7 +7,7 @@ Copy this file to `work/short-name.md` and replace every line. Remove this parag
 
 ## What you asked for
 
-{{OWNER}}'s words, copied exactly. Do not tidy or summarize them. Add the date they were said.
+the owner's words, copied exactly. Do not tidy or summarize them. Add the date they were said.
 
 ## What done looks like
 

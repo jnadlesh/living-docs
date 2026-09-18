@@ -5,7 +5,7 @@ All documentation for {{PROJECT}} lives in a separate repository at `{{DOCS_FROM
 Before you do anything:
 
 1. Read `README.md` and `NOW.md` there.
-2. Read `rules/using-the-documentation.md` and `rules/working-with-the-owner.md` there.
+2. Read `rules/docs/using-the-documentation.md` and `rules/working-with-the-owner.md` there.
 
 The rules that never change:
 
