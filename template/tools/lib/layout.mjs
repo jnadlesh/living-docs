@@ -37,6 +37,7 @@ export const CHAPTER_INTRO = "README.md";
 export const DOCS_DIR = "docs";
 export const RULES_DIR = "rules";
 export const WORK_DIR = "work";
+export const REFERENCE_DIR = "reference";
 export const DECISIONS_DIR = "decisions";
 export const DECISION_FILE = /^(\d{4})-[a-z0-9-]+\.md$/;
 

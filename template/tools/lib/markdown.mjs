@@ -5,7 +5,9 @@ const H1 = /^# (.+)$/;
 const H2 = /^## (.+)$/;
 const FENCE = /^```/;
 const LINK = /\[[^\]]*\]\(\s*(<[^>]+>|[^)\s]+)(?:\s+"[^"]*")?\s*\)/g;
-const LINK_DEFINITION = /^\s*\[[^\]]+\]:\s*(<[^>]+>|\S+)/gm;
+// A link definition is "[name]: target", optionally followed by a quoted title and nothing
+// else. A footnote such as "[^1]: Author, [title](url)" is prose, not a definition.
+const LINK_DEFINITION = /^\s*\[[^\]^][^\]]*\]:\s*(<[^>]+>|\S+)\s*(?:"[^"]*"|'[^']*'|\([^)]*\))?\s*$/gm;
 const BACKTICKED = /`([^`]+)`/g;
 // A sentence ends at punctuation followed by a new capitalised sentence or the end of the
 // passage. A full stop inside "v1.2" or before a lowercase word does not end one.

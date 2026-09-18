@@ -4,13 +4,11 @@ Copy this file into the right chapter under `docs/` and replace every line. Remo
 
 ## What it is
 
-Two or three plain sentences. The first two become the glossary entry, so they must make sense on their own.
+Two or three sentences that say what the thing is and what it is for. The first two become the glossary entry, so they must make sense on their own.
 
 ## How it works
 
-1. The short version, step by step.
-2. Say what it is for and why it is built this way.
-3. Say what would surprise someone.
+An explanation in paragraphs, the way you would tell a colleague: how it behaves, why it is built this way, and what would surprise someone. Use numbered steps only for something that really happens in order, such as what happens when a message is sent. Keep file names out of it; they go under Where it lives.
 
 ## Where it lives
 

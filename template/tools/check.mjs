@@ -10,7 +10,7 @@ import { staleIndexes } from "./build-indexes.mjs";
 import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
 import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
 import { readAllPages, specificPaths } from "./lib/pages.mjs";
-import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listMarkdownDeep, listPages } from "./lib/layout.mjs";
+import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, REFERENCE_DIR, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listMarkdownDeep, listPages } from "./lib/layout.mjs";
 
 const NOW_FILE = "NOW.md";
 const RETIRED_WORDS_FILE = `${RULES_DIR}/docs/retired-words.md`;
@@ -56,6 +56,20 @@ function checkTasks(root) {
     .flatMap((name) => checkTask({ file: `${WORK_DIR}/${name}`, text: read(root, `${WORK_DIR}/${name}`) }));
 }
 
+/**
+ * Broken links anywhere under work/ and reference/, as warnings. Plans and references are
+ * read by the next agent, so a dead link there is a real cost, but older plans were written
+ * before the documents moved and knowingly point at old places, so it is not an error.
+ */
+function checkWorkingLinks(root) {
+  return [WORK_DIR, REFERENCE_DIR].flatMap((folder) =>
+    listMarkdownDeep(root, folder).flatMap((name) => {
+      const file = `${folder}/${name}`;
+      return checkLinks(root, file, read(root, file)).map((problem) => ({ ...problem, level: "warning" }));
+    }),
+  );
+}
+
 function checkDecisions(root) {
   const names = listMarkdown(root, DECISIONS_DIR).filter((name) => name !== "README.md");
   const known = new Map(names.filter((n) => DECISION_FILE.test(n)).map((n) => [n.slice(0, 4), n]));
@@ -95,6 +109,7 @@ export function runChecks({ root, today, useCode }) {
     ...checkRules(root),
     ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today }),
     ...checkTasks(root),
+    ...checkWorkingLinks(root),
     ...checkDecisions(root),
     ...checkWords(root),
     ...TOP_FILES.flatMap((file) => checkLinks(root, file, read(root, file))),

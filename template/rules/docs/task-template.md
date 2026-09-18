@@ -15,7 +15,7 @@ How we will know it works. Things someone can check, not intentions.
 
 ## Notes
 
-What you found, what you did, and what you could not verify. Newest at the bottom. Keep it short. This is for the agent who picks the task up after you.
+What you found, what you did, and what you could not verify. Newest at the bottom. Keep it short. This is for the agent who picks the task up after you, so the last note always says three things: the branch the work is on, what has been proved and how, and the exact next action.
 
 ## Status
 

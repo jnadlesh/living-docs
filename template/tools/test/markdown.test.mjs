@@ -58,3 +58,8 @@ test("angle-bracket, titled and reference-style links are all collected", () => 
   const text = '[a](<my file.md>) [b](x.md "A title")\n\n[c][ref]\n\n[ref]: ../y.md\n';
   assert.deepEqual(relativeLinks(text), ["my file.md", "x.md", "../y.md"]);
 });
+
+test("a footnote with an author before its link is not a link definition", () => {
+  const text = "[^codex]: OpenAI, [How Codex reads AGENTS.md](https://example.com/a.md).\n[ref]: other.md\n";
+  assert.deepEqual(relativeLinks(text), ["other.md"]);
+});
