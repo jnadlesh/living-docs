@@ -1,9 +1,13 @@
 {
   "name": "living-docs",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
+  "description": "Sets up a documentation repository beside a code repository, with all work as GitHub issues in one shape.",
   "scripts": {
     "test": "node --test setup.test.mjs \"template/tools/test/*.test.mjs\""
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

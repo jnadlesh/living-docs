@@ -1,6 +1,6 @@
 # Archive
 
-Documents that are no longer true: finished plans, closed tasks, old research, superseded designs.
+Documents that are no longer true: finished plans, old research, superseded designs, and anything written before this documentation existed.
 
 Never read this folder to learn how {{PROJECT}} works. Read it only to learn what was once planned or believed, and why.
 
@@ -10,4 +10,4 @@ Never read this folder to learn how {{PROJECT}} works. Read it only to learn wha
 
 ## What is here
 
-- `code-repo/` holds documents that lived in the code repository, as they stood on 2026-09-17, after their content was rewritten elsewhere: the old Vision, the old Conventions, and the original single-file log of decisions 0001 to 0129. Each decision from that log is now its own file in `decisions/`.
+Nothing yet. When older documents arrive, list each folder here in one line: what it holds and the day it came.

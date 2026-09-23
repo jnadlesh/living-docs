@@ -13,7 +13,13 @@ import { checkLinks } from "../lib/checks.mjs";
 import { listMarkdownDeep } from "../lib/layout.mjs";
 
 const TODAY = new Date("2026-09-17T00:00:00Z");
-const git = (cwd, ...args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8" });
+// Commits are dated on TODAY, so the drift check sees the same history whatever day the tests run.
+const COMMIT_DATE = "2026-09-17T12:00:00";
+const git = (cwd, ...args) =>
+  execFileSync("git", ["-C", cwd, ...args], {
+    encoding: "utf8",
+    env: { ...process.env, GIT_AUTHOR_DATE: COMMIT_DATE, GIT_COMMITTER_DATE: COMMIT_DATE },
+  });
 
 function write(root, file, text) {
   mkdirSync(join(root, file, ".."), { recursive: true });
@@ -36,7 +42,7 @@ const block = (name) => `<!-- generated:${name}:start -->\n<!-- generated:${name
 
 function makeDocsRepo(base) {
   const root = join(base, "docs-repo");
-  write(root, "docs.config.json", JSON.stringify({ codeRepo: "../code", codeRef: "main", owner: "Jonathan" }));
+  write(root, "docs.config.json", JSON.stringify({ codeRepo: "../code", codeRef: "main", owner: "Priya" }));
   write(root, "README.md", "# Docs\n\n[Now](NOW.md)\n");
   write(root, "TABLE-OF-CONTENTS.md", `# Table of contents\n\n${block("chapters")}`);
   write(root, "GLOSSARY.md", `# Glossary\n\n${block("glossary")}`);

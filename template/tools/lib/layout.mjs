@@ -16,15 +16,6 @@ export const PAGE_HEADINGS = Object.freeze([
 /** The five headings of NOW.md. "The owner" is a role, so the file reads the same whoever holds it. */
 export const NOW_HEADINGS = Object.freeze(["In flight", "Waiting on the owner", "Next up", "Parked", "Watch out"]);
 
-export const TASK_HEADINGS = Object.freeze([
-  "What you asked for",
-  "What done looks like",
-  "Notes",
-  "Status",
-]);
-
-export const TASK_STATUSES = Object.freeze(["in progress", "blocked", "done"]);
-
 export const LIMITS = Object.freeze({
   pageLines: 150,
   nowLines: 60,

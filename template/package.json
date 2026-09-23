@@ -8,6 +8,7 @@
     "check": "node tools/check.mjs",
     "find": "node tools/find.mjs",
     "pages-for": "node tools/pages-for.mjs",
+    "github": "node tools/github.mjs",
     "test": "node --test \"tools/test/*.test.mjs\""
   },
   "engines": {
