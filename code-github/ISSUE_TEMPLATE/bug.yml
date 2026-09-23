@@ -1,0 +1,40 @@
+name: Bug
+description: Something does the wrong thing.
+title: ""
+labels: [bug, from-user, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One plain sentence as the title, in the present tense, under 80 characters. Then the five parts below, in plain words. One issue is one thing.
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: What happens, in one paragraph.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: One or two sentences on why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How to see it
+      description: The steps that make it happen, from a fresh start.
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: The screen or the part of the project this is about. Code paths if you know them.
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: Who asked and when. If someone said it, their exact words.

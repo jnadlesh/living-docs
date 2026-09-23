@@ -3,8 +3,8 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { checkDecision, checkUniqueTitles, checkNow, checkPage, checkRetiredWords, checkTask, parseDate, parseRetiredWords } from "../lib/checks.mjs";
-import { isPlainRepoPath } from "../lib/code-repo.mjs";
+import { checkDecision, checkUniqueTitles, checkNow, checkPage, checkRetiredWords, formatDate, localToday, parseDate, parseRetiredWords } from "../lib/checks.mjs";
+import { isPlainRepoPath, loadConfig } from "../lib/code-repo.mjs";
 
 const TODAY = new Date("2026-09-17T00:00:00Z");
 const TRACKED = new Set(["packages", "packages/ui", "packages/ui/src", "packages/ui/src/island.tsx"]);
@@ -98,16 +98,30 @@ test("NOW.md over sixty lines is an error", () => {
   assert.ok(messages(checkNow({ file: "NOW.md", text: now(many), today: TODAY })).some((m) => /the cap is 60/.test(m)));
 });
 
-const task = (status) =>
-  ["# Task", "", "Started: 2026-09-17", "Last touched: 2026-09-17", "", "## What you asked for", "", "\"Words.\"", "",
-    "## What done looks like", "", "1. X.", "", "## Notes", "", "- N.", "", "## Status", "", status, ""].join("\n");
+test("today is the local calendar day, so a date written today is never in the future", () => {
+  const lateEvening = new Date(2026, 8, 17, 23, 30);
+  const earlyMorning = new Date(2026, 8, 18, 0, 30);
+  assert.equal(formatDate(localToday(lateEvening)), "2026-09-17");
+  assert.equal(formatDate(localToday(earlyMorning)), "2026-09-18");
+  const root = mkdtempSync(join(tmpdir(), "docs-"));
+  const checkedToday = page({ checked: "2026-09-18" });
+  assert.deepEqual(checkPage({ root, file: "docs/02-the-chat/island.md", text: checkedToday, tracked: TRACKED, today: localToday(earlyMorning) }), []);
+});
 
-test("a task file needs its dates, its headings and a known status", () => {
-  assert.deepEqual(checkTask({ file: "work/t.md", text: task("in progress") }), []);
-  assert.deepEqual(checkTask({ file: "work/t.md", text: task("Blocked on Jonathan.") }), []);
-  assert.match(messages(checkTask({ file: "work/t.md", text: task("nearly") }))[0], /Status must start with/);
-  const undated = task("done").replace("Started: 2026-09-17\n", "");
-  assert.match(messages(checkTask({ file: "work/t.md", text: undated }))[0], /Started/);
+test("the configuration may name the project and its repository on GitHub, and a wrong name fails clearly", () => {
+  const root = mkdtempSync(join(tmpdir(), "docs-config-"));
+  const write = (config) => writeFileSync(join(root, "docs.config.json"), JSON.stringify(config));
+  write({ codeRepo: "../code", codeRef: "main" });
+  assert.deepEqual({ ...loadConfig(root), codeRepo: null }, { codeRepo: null, codeRef: "main", owner: null, project: null, github: null });
+  write({ codeRepo: "../code", codeRef: "main", owner: " Priya ", project: "My App", github: "priya/my-app" });
+  const full = loadConfig(root);
+  assert.equal(full.owner, "Priya");
+  assert.equal(full.project, "My App");
+  assert.equal(full.github, "priya/my-app");
+  write({ codeRepo: "../code", codeRef: "main", github: "https://github.com/priya/my-app" });
+  assert.throws(() => loadConfig(root), /"github" must be written as owner\/name/);
+  write({ codeRepo: "../code", codeRef: "main", project: "" });
+  assert.throws(() => loadConfig(root), /"project", when given, is the name of the project/);
 });
 
 test("retired words are read from the table and caught in prose, not in code blocks", () => {

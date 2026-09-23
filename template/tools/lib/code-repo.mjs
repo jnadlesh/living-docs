@@ -7,25 +7,44 @@ import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 
 export const CONFIG_FILE = "docs.config.json";
+/** A repository on GitHub, written the way GitHub writes it: owner/name. */
+export const GITHUB_REPO = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\/[A-Za-z0-9._-]+$/;
 const GIT_LIST_LIMIT_BYTES = 64 * 1024 * 1024;
+
+/** An optional text setting: absent is null, anything else must be real text. */
+function optionalText(parsed, key, meaning) {
+  const value = parsed[key];
+  if (value === undefined) return null;
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${CONFIG_FILE}: "${key}", when given, is ${meaning}`);
+  }
+  return value.trim();
+}
 
 /** Reads docs.config.json and fails with a clear message when it is unusable. */
 export function loadConfig(root) {
   const file = join(root, CONFIG_FILE);
   if (!existsSync(file)) throw new Error(`${CONFIG_FILE} is missing from ${root}`);
   const parsed = JSON.parse(readFileSync(file, "utf8"));
-  const { codeRepo, codeRef, owner } = parsed;
+  const { codeRepo, codeRef } = parsed;
   if (typeof codeRepo !== "string" || codeRepo.length === 0) {
     throw new Error(`${CONFIG_FILE}: "codeRepo" must be a path`);
   }
   if (typeof codeRef !== "string" || !/^[\w./-]+$/.test(codeRef) || codeRef.startsWith("-")) {
     throw new Error(`${CONFIG_FILE}: "codeRef" must be a plain branch or tag name`);
   }
-  if (owner !== undefined && (typeof owner !== "string" || owner.trim().length === 0)) {
-    throw new Error(`${CONFIG_FILE}: "owner", when given, is the name of the person who owns the project`);
+  const github = optionalText(parsed, "github", "the code repository on GitHub, written as owner/name");
+  if (github !== null && !GITHUB_REPO.test(github)) {
+    throw new Error(`${CONFIG_FILE}: "github" must be written as owner/name, such as octocat/hello-world`);
   }
   const location = isAbsolute(codeRepo) ? codeRepo : resolve(root, codeRepo);
-  return { codeRepo: location, codeRef, owner: owner === undefined ? null : owner.trim() };
+  return {
+    codeRepo: location,
+    codeRef,
+    owner: optionalText(parsed, "owner", "the name of the person who owns the project"),
+    project: optionalText(parsed, "project", "the name of the project"),
+    github,
+  };
 }
 
 /** Every file and folder tracked at `ref`, as forward-slash paths from the repository root. */

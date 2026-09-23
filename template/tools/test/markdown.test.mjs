@@ -34,8 +34,8 @@ test("only links into this repository are collected, without anchors", () => {
 });
 
 test("listed paths are the backticked entries of list items only", () => {
-  const body = "Prose with `not/a/path`.\n- `packages/ui/src/island.tsx` the pill\n- `packages/ui` and `apps/aurelia`\n";
-  assert.deepEqual(listedPaths(body), ["packages/ui/src/island.tsx", "packages/ui", "apps/aurelia"]);
+  const body = "Prose with `not/a/path`.\n- `packages/ui/src/island.tsx` the pill\n- `packages/ui` and `apps/web`\n";
+  assert.deepEqual(listedPaths(body), ["packages/ui/src/island.tsx", "packages/ui", "apps/web"]);
 });
 
 test("a generated block is replaced and the hand-written text is kept", () => {

@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { staleIndexes } from "./build-indexes.mjs";
-import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, checkTask, parseRetiredWords } from "./lib/checks.mjs";
+import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, localToday, parseRetiredWords } from "./lib/checks.mjs";
 import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
 import { readAllPages, specificPaths } from "./lib/pages.mjs";
 import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, REFERENCE_DIR, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listMarkdownDeep, listPages } from "./lib/layout.mjs";
@@ -15,7 +15,6 @@ import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, REFERENCE_DIR, RULES_DI
 const NOW_FILE = "NOW.md";
 const RETIRED_WORDS_FILE = `${RULES_DIR}/docs/retired-words.md`;
 const TOP_FILES = Object.freeze(["README.md", NOW_FILE]);
-const TASK_EXEMPT = new Set(["README.md", "not-built-yet.md"]);
 
 const read = (root, file) => readFileSync(join(root, file), "utf8").replace(/\r\n/g, "\n");
 
@@ -48,12 +47,6 @@ function checkRules(root) {
     const text = read(root, file);
     return [...checkLength(file, text, LIMITS.pageLines), ...checkLinks(root, file, text)];
   });
-}
-
-function checkTasks(root) {
-  return listMarkdown(root, WORK_DIR)
-    .filter((name) => !TASK_EXEMPT.has(name))
-    .flatMap((name) => checkTask({ file: `${WORK_DIR}/${name}`, text: read(root, `${WORK_DIR}/${name}`) }));
 }
 
 /**
@@ -108,7 +101,6 @@ export function runChecks({ root, today, useCode }) {
     ...(tracked ? checkAllDrift(root, config, tracked) : []),
     ...checkRules(root),
     ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today }),
-    ...checkTasks(root),
     ...checkWorkingLinks(root),
     ...checkDecisions(root),
     ...checkWords(root),
@@ -128,7 +120,7 @@ function report(problems) {
 function main() {
   const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
   const useCode = !process.argv.includes("--no-code");
-  const errors = report(runChecks({ root, today: new Date(), useCode }));
+  const errors = report(runChecks({ root, today: localToday(), useCode }));
   if (errors > 0) process.exitCode = 1;
 }
 

@@ -4,7 +4,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { isPlainRepoPath } from "./code-repo.mjs";
-import { DECISION_FILE, LIMITS, PAGE_HEADINGS, TASK_HEADINGS, TASK_STATUSES, NOW_HEADINGS } from "./layout.mjs";
+import { DECISION_FILE, LIMITS, PAGE_HEADINGS, NOW_HEADINGS } from "./layout.mjs";
 import { listedPaths, parsePage, proseOnly, relativeLinks, sectionBody, withoutFences } from "./markdown.mjs";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -23,6 +23,18 @@ export function parseDate(value) {
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) return null;
   return date;
 }
+
+/**
+ * Today as the calendar day where the check runs, the date a person there would write.
+ * Midnight UTC of the local day, so it compares exactly with a date from parseDate. Using
+ * the moment itself would call today's date "in the future" wherever the clock is ahead of UTC.
+ */
+export function localToday(now = new Date()) {
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+}
+
+/** A day written the way the documentation writes dates: 2026-09-17. */
+export const formatDate = (date) => date.toISOString().slice(0, 10);
 
 const ageInDays = (date, today) => Math.floor((today.getTime() - date.getTime()) / DAY_MS);
 
@@ -109,20 +121,6 @@ export function checkNow({ file, text, today }) {
     ...headingProblems(file, page, NOW_HEADINGS),
     ...checkLength(file, text, LIMITS.nowLines),
     ...page.sections.flatMap((section) => nowItemProblems(file, section, today)),
-  ];
-}
-
-/** A task file in work/: two dates, four headings, a known status. */
-export function checkTask({ file, text }) {
-  const page = parsePage(text);
-  const flat = withoutFences(text);
-  const dated = (label) => parseDate(new RegExp(`^${label}: (\\S+)$`, "m").exec(flat)?.[1] ?? "");
-  const status = (sectionBody(page, "Status") ?? "").split("\n")[0].trim().toLowerCase();
-  return [
-    ...(dated("Started") ? [] : [error(file, 'needs a line like "Started: 2026-09-17"')]),
-    ...(dated("Last touched") ? [] : [error(file, 'needs a line like "Last touched: 2026-09-17"')]),
-    ...headingProblems(file, page, TASK_HEADINGS),
-    ...(TASK_STATUSES.some((s) => status.startsWith(s)) ? [] : [error(file, `Status must start with one of: ${TASK_STATUSES.join(", ")}`)]),
   ];
 }
 

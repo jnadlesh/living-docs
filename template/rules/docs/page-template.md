@@ -1,6 +1,6 @@
 # The name of the thing
 
-Copy this file into the right chapter under `docs/` and replace every line. Remove this paragraph. The rules are in [writing documentation](writing-documentation.md).
+Copy this file into the right section under `docs/` and replace every line. Remove this paragraph. The rules are in [writing documentation](writing-documentation.md).
 
 ## What it is
 
