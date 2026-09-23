@@ -2,13 +2,15 @@
 // Checks the documentation against its own rules and against the code it describes.
 // Errors fail the run. Warnings are questions for whoever is working next.
 //   --no-code   skip the check that listed paths exist in the code repository
+// A repository set up with --design-first skips the code by itself, and says so, until the
+// code exists; then it warns until setup's --connect has joined the two.
 
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { staleIndexes } from "./build-indexes.mjs";
 import { checkDecision, checkDrift, checkUniqueTitles, checkLength, checkLinks, checkNow, checkPage, checkRetiredWords, localToday, parseRetiredWords } from "./lib/checks.mjs";
-import { commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
+import { CONFIG_FILE, codeIsReady, commitsSince, loadConfig, trackedPaths } from "./lib/code-repo.mjs";
 import { readAllPages, specificPaths } from "./lib/pages.mjs";
 import { DECISIONS_DIR, DECISION_FILE, DOCS_DIR, LIMITS, REFERENCE_DIR, RULES_DIR, WORK_DIR, listChapters, listMarkdown, listMarkdownDeep, listPages } from "./lib/layout.mjs";
 
@@ -91,14 +93,29 @@ function checkIndexes(root) {
   }
 }
 
+/** True while a documentation repository set up before its code is still waiting for it. */
+export const codeIsWaiting = (config) => config.designFirst && !codeIsReady(config.codeRepo, config.codeRef);
+
+/** Once the code a design-first repository waited for exists, joining the two is due. */
+function connectReminder(config, waiting) {
+  if (!config.designFirst || waiting) return [];
+  return [{
+    level: "warning",
+    file: CONFIG_FILE,
+    message: `the code exists now at ${config.codeRepo}. Connect it: run the living-docs skill's setup with --connect and --docs pointing at this repository`,
+  }];
+}
+
 /** Runs every check and returns the problems found. */
 export function runChecks({ root, today, useCode }) {
   const config = loadConfig(root);
-  const tracked = useCode ? trackedPaths(config.codeRepo, config.codeRef) : null;
+  const waiting = codeIsWaiting(config);
+  const tracked = useCode && !waiting ? trackedPaths(config.codeRepo, config.codeRef) : null;
   return [
     ...checkPages(root, tracked, today),
     ...checkUniqueTitles(readAllPages(root)),
     ...(tracked ? checkAllDrift(root, config, tracked) : []),
+    ...connectReminder(config, waiting),
     ...checkRules(root),
     ...checkNow({ file: NOW_FILE, text: read(root, NOW_FILE), today }),
     ...checkWorkingLinks(root),
@@ -120,6 +137,9 @@ function report(problems) {
 function main() {
   const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
   const useCode = !process.argv.includes("--no-code");
+  if (useCode && codeIsWaiting(loadConfig(root))) {
+    process.stdout.write("The code does not exist yet, so code paths and drift were not checked.\n");
+  }
   const errors = report(runChecks({ root, today: localToday(), useCode }));
   if (errors > 0) process.exitCode = 1;
 }

@@ -8,7 +8,7 @@ A way to run a software project with AI agents so they stop working from stale i
 
 ## Setting it up
 
-You need Node 22 or newer, git, the GitHub command line tool signed in (`gh auth login`), and your code in a git repository on GitHub.
+You need Node 22 or newer, git, the GitHub command line tool signed in (`gh auth login`), and your code in a git repository on GitHub. If you are designing the project before writing any code, you only need to know where the code will go: setup's design-first mode writes the documentation now and connects it to the code later.
 
 Give this folder to your agent in one of two ways:
 

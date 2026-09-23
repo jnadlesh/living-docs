@@ -20,7 +20,7 @@ Do the steps in order. The owner is the person you are working for. They decide 
 
 - Node 22 or newer (`node --version`), and git.
 - The GitHub command line tool, signed in: `gh auth status`. If it is missing, ask the owner to install it from https://cli.github.com. If it is signed out, ask the owner to run `gh auth login` themselves. Never type or handle their password or token.
-- The code in a git repository that is on GitHub. If it is not on GitHub yet, stop and tell the owner: making the repository is their call.
+- The code in a git repository that is on GitHub. If it is not on GitHub yet, stop and tell the owner: making the repository is their call. If there is no code at all yet, because the project is being designed first, set up in design-first mode instead (step 3).
 
 ### 2. Ask the owner
 
@@ -37,6 +37,14 @@ node setup.mjs --project "<Project name>" --owner "<Their name>" --code <path to
 ```
 
 It finds the repository on GitHub from the code's origin remote; pass `--github owner/name` when there is none. It describes the branch `main`, or `master`, or the one given with `--ref`. `--no-code-files` leaves the code repository untouched. `--no-git` skips making the new repository a git repository.
+
+**Before the code exists.** When a project is designed first, add `--design-first`, with `--code` naming where the code will be and `--github owner/name` naming the repository on GitHub that will hold the work; neither has to exist yet. Setup writes nothing for the code, marks `docs.config.json`, and adds a line to NOW.md saying the code does not exist yet. Until it does, the check skips code paths and says so. Once the code is a git repository with a first commit, the check warns, and it is time to run:
+
+```
+node setup.mjs --connect --docs <path to the documentation>
+```
+
+It writes the code repository's files, ends design-first mode, takes the line out of NOW.md, and checks the documentation against the code. Commit the two files it changed in the documentation repository.
 
 What it does:
 

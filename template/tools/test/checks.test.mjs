@@ -112,12 +112,13 @@ test("the configuration may name the project and its repository on GitHub, and a
   const root = mkdtempSync(join(tmpdir(), "docs-config-"));
   const write = (config) => writeFileSync(join(root, "docs.config.json"), JSON.stringify(config));
   write({ codeRepo: "../code", codeRef: "main" });
-  assert.deepEqual({ ...loadConfig(root), codeRepo: null }, { codeRepo: null, codeRef: "main", owner: null, project: null, github: null });
-  write({ codeRepo: "../code", codeRef: "main", owner: " Priya ", project: "My App", github: "priya/my-app" });
+  assert.deepEqual({ ...loadConfig(root), codeRepo: null }, { codeRepo: null, codeRef: "main", owner: null, project: null, github: null, designFirst: false });
+  write({ codeRepo: "../code", codeRef: "main", owner: " Priya ", project: "My App", github: "priya/my-app", designFirst: true });
   const full = loadConfig(root);
   assert.equal(full.owner, "Priya");
   assert.equal(full.project, "My App");
   assert.equal(full.github, "priya/my-app");
+  assert.equal(full.designFirst, true);
   write({ codeRepo: "../code", codeRef: "main", github: "https://github.com/priya/my-app" });
   assert.throws(() => loadConfig(root), /"github" must be written as owner\/name/);
   write({ codeRepo: "../code", codeRef: "main", project: "" });

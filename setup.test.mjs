@@ -7,11 +7,12 @@ import { test } from "node:test";
 import { githubFromRemote, parseArgs, setup, withBlock } from "./setup.mjs";
 import { areaLabels, readTiers } from "./template/tools/github.mjs";
 import { formatDate, localToday } from "./template/tools/lib/checks.mjs";
+import { loadConfig } from "./template/tools/lib/code-repo.mjs";
 
 const git = (cwd, ...args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8" });
 
-function makeCodeRepo(base, { branch = "main", remote = "https://github.com/priya/my-app.git" } = {}) {
-  const code = join(base, "my-app");
+function makeCodeRepo(base, { branch = "main", remote = "https://github.com/priya/my-app.git", name = "my-app" } = {}) {
+  const code = join(base, name);
   mkdirSync(join(code, "src"), { recursive: true });
   git(code, "init", "-q", "-b", branch);
   git(code, "config", "user.email", "test@example.test");
@@ -147,6 +148,61 @@ test("the repository on GitHub and the branch are found, or setup stops before w
   assert.equal(githubFromRemote("https://gitlab.com/priya/my-app.git"), null);
 });
 
+const checkIn = (docs) => execFileSync(process.execPath, ["tools/check.mjs"], { cwd: docs, encoding: "utf8" });
+
+test("design first: the documentation comes before the code, and its check says what it skipped", () => {
+  const base = mkdtempSync(join(tmpdir(), "living-docs-"));
+  const code = join(base, "my-game");
+  const docs = join(base, "my-game-docs");
+  const result = setup(["--project", "My Game", "--owner", "Priya", "--code", code, "--docs", docs, "--github", "priya/my-game", "--design-first", "--root", base, "--no-git"]);
+  assert.equal(result.checked, "0 errors, 0 warnings.");
+  assert.equal(result.designFirst, true);
+  assert.deepEqual(result.notes, []);
+  assert.equal(existsSync(code), false);
+  assert.deepEqual(JSON.parse(read(docs, "docs.config.json")), { project: "My Game", codeRepo: "../my-game", codeRef: "main", github: "priya/my-game", owner: "Priya", designFirst: true });
+  assert.match(read(docs, "NOW.md"), /## Watch out\n\n- \d{4}-\d{2}-\d{2} The code does not exist yet\. It will be at `\.\.\/my-game`, and its work will be the issues of priya\/my-game\./);
+  assert.match(read(base, "AGENTS.md"), /`my-game-docs\/` is all the documentation/);
+  const output = checkIn(docs);
+  assert.match(output, /^The code does not exist yet, so code paths and drift were not checked\.$/m);
+  assert.match(output, /0 errors, 0 warnings\.\n$/);
+});
+
+test("design first needs --github, and is refused for code that already exists", () => {
+  assert.throws(() => parseArgs(["--project", "X", "--owner", "Y", "--code", "a", "--docs", "b", "--design-first"]), /--design-first needs --github owner\/name/);
+  const base = mkdtempSync(join(tmpdir(), "living-docs-"));
+  const code = makeCodeRepo(base);
+  assert.throws(() => setup(["--project", "X", "--owner", "Y", "--code", code, "--docs", join(base, "d"), "--github", "priya/x", "--design-first"]), /already a git repository[\s\S]*Leave out --design-first/);
+  assert.throws(() => setup(["--project", "X", "--owner", "Y", "--code", join(base, "missing"), "--docs", join(base, "d")]), /not found[\s\S]*pass --design-first/);
+  assert.equal(existsSync(join(base, "d")), false);
+});
+
+test("connect joins a design-first repository to its code once the code exists, and only then", () => {
+  const base = mkdtempSync(join(tmpdir(), "living-docs-"));
+  const code = join(base, "my-app");
+  const docs = join(base, "my-app-docs");
+  setup(["--project", "My App", "--owner", "Priya", "--code", code, "--docs", docs, "--github", "priya/my-app", "--design-first", "--no-git"]);
+  assert.throws(() => setup(["--connect", "--docs", docs]), /code is not ready[\s\S]*Nothing was changed/);
+  assert.equal(JSON.parse(read(docs, "docs.config.json")).designFirst, true);
+
+  makeCodeRepo(base);
+  assert.match(checkIn(docs), /WARNING docs\.config\.json: the code exists now[\s\S]*--connect/);
+
+  const result = setup(["--connect", "--docs", docs]);
+  assert.equal(result.connected, true);
+  assert.equal(result.checked, "0 errors, 0 warnings.");
+  assert.deepEqual(JSON.parse(read(docs, "docs.config.json")), { project: "My App", codeRepo: "../my-app", codeRef: "main", github: "priya/my-app", owner: "Priya" });
+  assert.doesNotMatch(read(docs, "NOW.md"), /does not exist yet/);
+  assert.match(read(docs, "NOW.md"), /## Watch out\n$/);
+  assert.match(read(code, "AGENTS.md"), /lives in a separate repository at `\.\.\/my-app-docs`/);
+  assert.match(read(code, "AGENTS.md"), /# Existing rules\n\nKeep these\./);
+  assert.match(result.notes.at(-1), /docs\.config\.json and NOW\.md changed[\s\S]*Commit them there/);
+  assert.match(checkIn(docs), /^0 errors, 0 warnings\.\n$/);
+
+  assert.throws(() => setup(["--connect", "--docs", docs]), /not waiting for its code/);
+  assert.throws(() => parseArgs(["--connect", "--docs", docs, "--code", code]), /Leave out --code/);
+  assert.throws(() => parseArgs(["--connect", "--design-first", "--docs", docs, "--github", "a/b"]), /does not go with --design-first/);
+});
+
 test("setup refuses a folder that already has files, and changes nothing", () => {
   const base = mkdtempSync(join(tmpdir(), "living-docs-"));
   const code = makeCodeRepo(base);
@@ -161,6 +217,9 @@ test("arguments are validated, and the pointer block is refreshed in place", () 
   assert.throws(() => parseArgs(["--project", "X", "--owner", "Y", "--code", "a", "--docs", "b", "--ref", "--upload-pack=x"]), /plain branch name/);
   assert.throws(() => parseArgs(["--project", "X", "--owner", "Y", "--code", "a", "--docs", "b", "--github", "https://github.com/a/b"]), /owner\/name/);
   assert.throws(() => parseArgs(["--projcet", "X"]), /unexpected argument: --projcet/);
+  const configDir = mkdtempSync(join(tmpdir(), "living-docs-"));
+  writeFileSync(join(configDir, "docs.config.json"), JSON.stringify({ codeRepo: "../x", codeRef: "main", designFirst: "yes" }));
+  assert.throws(() => loadConfig(configDir), /"designFirst", when given, is true or false/);
   const once = withBlock("# Mine\n", "first");
   const twice = withBlock(once, "second");
   assert.match(twice, /second/);

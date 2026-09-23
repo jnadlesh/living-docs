@@ -37,6 +37,10 @@ export function loadConfig(root) {
   if (github !== null && !GITHUB_REPO.test(github)) {
     throw new Error(`${CONFIG_FILE}: "github" must be written as owner/name, such as octocat/hello-world`);
   }
+  const designFirst = parsed.designFirst ?? false;
+  if (typeof designFirst !== "boolean") {
+    throw new Error(`${CONFIG_FILE}: "designFirst", when given, is true or false`);
+  }
   const location = isAbsolute(codeRepo) ? codeRepo : resolve(root, codeRepo);
   return {
     codeRepo: location,
@@ -44,7 +48,24 @@ export function loadConfig(root) {
     owner: optionalText(parsed, "owner", "the name of the person who owns the project"),
     project: optionalText(parsed, "project", "the name of the project"),
     github,
+    designFirst,
   };
+}
+
+/**
+ * Whether `ref` names a commit in the repository whose root is `repo`. False for a folder
+ * that is not there yet, is not the root of a git repository, or has no such branch yet:
+ * a documentation repository set up before its code waits for all three.
+ */
+export function codeIsReady(repo, ref) {
+  if (!existsSync(join(repo, ".git"))) return false;
+  try {
+    execFileSync("git", ["-C", repo, "rev-parse", "--verify", "--quiet", `${ref}^{commit}`], { stdio: "ignore" });
+    return true;
+  } catch (cause) {
+    if (cause.code === "ENOENT") throw new Error("git is not installed, or is not on the PATH");
+    return false;
+  }
 }
 
 /** Every file and folder tracked at `ref`, as forward-slash paths from the repository root. */

@@ -1,6 +1,6 @@
 {
   "name": "living-docs",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "Sets up a documentation repository beside a code repository, with all work as GitHub issues in one shape.",
