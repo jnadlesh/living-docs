@@ -12,7 +12,7 @@ You need Node 22 or newer, git, the GitHub command line tool signed in (`gh auth
 
 Give this folder to your agent in one of two ways:
 
-- Unzip it anywhere, start your agent in the folder that holds your code, and say: *Read living-docs/SKILL.md, in the folder where I unzipped it, and set up living docs for my project.*
+- Start your agent in the folder that holds your code, and say: *Read SKILL.md in the living-docs folder at (wherever you put it), and set up living docs for my project.*
 - Or install it as a skill, so any session can use it by name. Copy the `living-docs` folder into `~/.claude/skills/` for Claude Code, or `~/.codex/skills/` for Codex. Then say: *Set up living docs for this project.*
 
 Your agent will ask you a few things: the project's name, your name, where the code is, the parts your project divides into, and the order you want work done in. It then walks you through the rules it arrived with, so you can keep, change or drop each one.
