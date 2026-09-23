@@ -60,7 +60,7 @@ test("setup makes a documentation repository whose own check passes, and leaves 
   assert.match(loaded, /All work is a GitHub issue on priya\/my-app: https:\/\/github\.com\/priya\/my-app\/issues/);
 });
 
-test("nothing from the project it was built for, and no unfilled blank, reaches a new repository", () => {
+test("a new repository gets no unfilled blank, nothing from the project it was built for, and Unix line endings", () => {
   const base = mkdtempSync(join(tmpdir(), "living-docs-"));
   const code = makeCodeRepo(base);
   const docs = join(base, "my-app-docs");
@@ -68,6 +68,9 @@ test("nothing from the project it was built for, and no unfilled blank, reaches 
   const written = [...walk(docs), ...walk(join(code, ".github")), join(code, "AGENTS.md"), join(base, "AGENTS.md")];
   const offenders = written.filter((file) => /\{\{|Aurelia|Jonathan|outerfleet|C:\\\\dev/i.test(read(file)));
   assert.deepEqual(offenders.map((file) => relative(base, file)), []);
+  // A Windows checkout of the skill has Windows line endings. What setup writes must not.
+  const windowsEndings = written.filter((file) => read(file).includes("\r"));
+  assert.deepEqual(windowsEndings.map((file) => relative(base, file)), []);
 });
 
 test("the new repository names its GitHub labels and milestones from its own pages, and its tools' tests pass there", () => {

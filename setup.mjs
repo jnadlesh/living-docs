@@ -23,9 +23,12 @@ const POINTERS = join(HERE, "pointers");
 const CODE_GITHUB = join(HERE, "code-github");
 const BLOCK_START = "<!-- living-docs:start -->";
 const BLOCK_END = "<!-- living-docs:end -->";
-const TEXT_FILE = /\.(md|json|mjs|gitattributes)$|^\.gitattributes$/;
+const TEXT_FILE = /\.(md|json|mjs|ya?ml|gitattributes)$|^\.gitattributes$/;
 const VALUE_OPTIONS = new Set(["project", "owner", "code", "docs", "github", "ref", "root"]);
 const MAIN_BRANCHES = ["main", "master"];
+
+/** One of the skill's own files, with Unix line endings however the skill was checked out. */
+const readText = (path) => readFileSync(path, "utf8").replace(/\r\n/g, "\n");
 
 export function parseArgs(argv) {
   const options = { codeFiles: true, git: true };
@@ -118,8 +121,9 @@ function walk(dir) {
 function copyTemplate(docs, values) {
   cpSync(TEMPLATE, docs, { recursive: true });
   for (const file of walk(docs)) {
-    if (!TEXT_FILE.test(file) || file.includes(`${join("tools", "test")}`)) continue;
-    writeFileSync(file, fill(readFileSync(file, "utf8"), values));
+    if (!TEXT_FILE.test(file)) continue;
+    const text = readText(file);
+    writeFileSync(file, file.includes(join("tools", "test")) ? text : fill(text, values));
   }
 }
 
@@ -145,7 +149,7 @@ export function withBlock(existing, block) {
 }
 
 function writePointer(folder, templateName, values) {
-  const block = fill(readFileSync(join(POINTERS, templateName), "utf8"), values);
+  const block = fill(readText(join(POINTERS, templateName)), values);
   const agents = join(folder, "AGENTS.md");
   writeFileSync(agents, withBlock(existsSync(agents) ? readFileSync(agents, "utf8") : "", block));
   const claude = join(folder, "CLAUDE.md");
@@ -172,7 +176,7 @@ function writeGithubFiles(code, values) {
     const shown = toPosix(relative(code, target));
     if (existsSync(target)) return `kept the existing ${shown}. Compare it with ${toPosix(relative(HERE, source))} in the skill.`;
     mkdirSync(dirname(target), { recursive: true });
-    const text = readFileSync(source, "utf8");
+    const text = readText(source);
     writeFileSync(target, source.endsWith(".md") ? fill(text, values) : text);
     return null;
   });
